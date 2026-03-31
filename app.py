@@ -12,7 +12,7 @@ st.set_page_config(
 # ── Constants ──────────────────────────────────────────────────────────────────
 BOND_ETF  = "FXNAX"
 US_ETF    = "FXAIX"
-INTL_ETF  = "FSPSX"
+INTL_ETF  = "FZILX"
 ETF_ORDER = [BOND_ETF, INTL_ETF, US_ETF]
 LABELS    = {
     BOND_ETF: f"Bonds ({BOND_ETF})",
@@ -23,18 +23,21 @@ ETF_COLOR = {BOND_ETF: "#3498db", US_ETF: "#e74c3c", INTL_ETF: "#2ecc71"}
 
 REBALANCE_ABS_THRESHOLD = 5.0
 REBALANCE_REL_THRESHOLD = 0.25
-DEFAULT_US_WEIGHT       = 71.24  # MSCI ACWI as of 2026-02-28
+# 7:3 US/Intl fixed split — S&P 500 earns ~62% US / ~38% intl revenue;
+# MSCI ACWI ex-US earns ~22% US / ~78% intl revenue.
+# At 70/30, blended US-sourced revenue ≈ 50%, achieving ~50/50 true geographic exposure.
+US_STOCK_WEIGHT = 70.0
 
 
 # ── Calculation helpers ────────────────────────────────────────────────────────
-def compute_targets(age: int, us_weight_pct: float) -> dict[str, float]:
+def compute_targets(age: int) -> dict[str, float]:
     """Returns target % for each ETF. Stocks = 110 - age, Bonds = age - 10."""
     stock_pct = float(110 - age)
     bond_pct  = 100.0 - stock_pct
     return {
         BOND_ETF: bond_pct,
-        US_ETF:   stock_pct * us_weight_pct / 100.0,
-        INTL_ETF: stock_pct * (1.0 - us_weight_pct / 100.0),
+        US_ETF:   stock_pct * US_STOCK_WEIGHT / 100.0,
+        INTL_ETF: stock_pct * (1.0 - US_STOCK_WEIGHT / 100.0),
     }
 
 
@@ -60,24 +63,17 @@ def holding_status(current_usd: float, lo_usd: float, hi_usd: float) -> str:
 st.title("📊 Rebalance Calculator")
 st.caption(
     "Strategy: Stocks = 110 − age  |  Bonds = age − 10  |  "
-    "US/Intl split follows MSCI ACWI country weights"
+    "US/Intl split = 70/30 (S&P 500 revenue ~62% US + MSCI ACWI ex-US ~22% US ≈ 50% true geographic exposure)"
 )
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.header("⚙️ Settings")
 
-    col_age, col_us = st.columns(2)
-    age = col_age.number_input(
+    age = st.number_input(
         "Age", min_value=18, max_value=80, value=27, step=1,
     )
-    us_weight = col_us.number_input(
-        "US weight (%)",
-        min_value=0.0, max_value=100.0,
-        value=DEFAULT_US_WEIGHT,
-        step=0.1, format="%.1f",
-        help="MSCI ACWI US weight. Default: 71.2% (2026-02-28).",
-    )
+    st.caption("US/Intl stock split: **70 / 30** (fixed)")
 
     st.divider()
     st.subheader("Portfolio (USD)")
@@ -107,7 +103,7 @@ with st.sidebar:
 
 # ── Derived values ─────────────────────────────────────────────────────────────
 investable  = max(0.0, total_portfolio - cash)
-targets     = compute_targets(age, us_weight)
+targets     = compute_targets(age)
 
 target_usd  = {etf: investable * targets[etf] / 100.0 for etf in ETF_ORDER}
 band_lo_usd = {etf: investable * rebalance_band(targets[etf])[0] / 100.0 for etf in ETF_ORDER}
