@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rebalance Calculator</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><text y=%2214%22 font-size=%2214%22>📊</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h2>⚙️ Settings</h2>
+
+      <div class="field">
+        <label for="age">Age</label>
+        <input type="number" id="age" min="18" max="80" step="1" value="27" />
+      </div>
+      <p class="caption">US/Intl stock split: <strong>70 / 30</strong> (fixed)</p>
+
+      <hr class="divider" />
+      <h3>Portfolio (USD)</h3>
+      <div class="field">
+        <label for="totalPortfolio">Total portfolio value</label>
+        <input type="number" id="totalPortfolio" min="0" step="1000" value="0" />
+        <div class="help">Total value of all assets including cash</div>
+      </div>
+      <div class="field">
+        <label for="cash">Cash / money market</label>
+        <input type="number" id="cash" min="0" step="100" value="0" />
+        <div class="help">Portion held as cash — excluded from ETF allocation</div>
+      </div>
+
+      <hr class="divider" />
+      <h3>Current Holdings (USD)</h3>
+      <div class="field">
+        <label for="currentBond">Bonds (FXNAX)</label>
+        <input type="number" id="currentBond" min="0" step="100" value="0" />
+      </div>
+      <div class="field">
+        <label for="currentIntl">Intl Stocks (FZILX)</label>
+        <input type="number" id="currentIntl" min="0" step="100" value="0" />
+      </div>
+
+      <div class="sidebar-metric">
+        <div class="metric-label">US Stocks (FXAIX) — computed</div>
+        <div class="metric-value" id="computedUsValue">$0</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <h1>📊 Rebalance Calculator</h1>
+      <p class="top-caption">
+        Strategy: Stocks = 110 − age &nbsp;|&nbsp; Bonds = age − 10 &nbsp;|&nbsp;
+        US/Intl split = 70/30 (S&amp;P 500 revenue ~62% US + MSCI ACWI ex-US ~22% US ≈ 50% true geographic exposure)
+      </p>
+
+      <div class="metrics-row" id="metricsRow" style="display: none;">
+        <div class="metric">
+          <div class="metric-label">Total Portfolio</div>
+          <div class="metric-value" id="mTotal">$0</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Cash</div>
+          <div class="metric-value" id="mCash">$0</div>
+          <div class="metric-delta" id="mCashDelta">0.0% of total</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Investable</div>
+          <div class="metric-value" id="mInvestable">$0</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Stock / Bond split</div>
+          <div class="metric-value" id="mSplit">83 / 17</div>
+        </div>
+      </div>
+      <hr class="divider" />
+
+      <div class="columns">
+        <div>
+          <h3>Target Allocation</h3>
+          <div id="pieChart"></div>
+        </div>
+        <div>
+          <h3>Target Ranges (5/25 Rule)</h3>
+          <div id="tableContainer"></div>
+        </div>
+      </div>
+
+      <div class="section" id="bulletSection" style="display: none;">
+        <hr class="divider" />
+        <h3>Dollar Target Ranges</h3>
+        <div id="bulletChart"></div>
+        <p class="bullet-caption">Grey bar = 5/25 tolerance band &nbsp;|&nbsp; tick = target &nbsp;|&nbsp; diamond = current holdings.</p>
+      </div>
+
+      <div class="footer">
+        <a href="https://www.bogleheads.org/wiki/Asset_allocation" target="_blank" rel="noopener">110 rule</a>
+        &nbsp;·&nbsp;
+        <a href="https://www.bogleheads.org/wiki/Rebalancing" target="_blank" rel="noopener">5/25 rebalancing rule</a>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
